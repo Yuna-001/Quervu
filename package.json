@@ -8,7 +8,13 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
-    "prepare": "husky"
+    "test:watch": "jest --watch",
+    "test:watchAll": "jest --watchAll",
+    "test:changed": "jest --onlyChanged",
+    "test:coverage": "jest --coverage",
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
