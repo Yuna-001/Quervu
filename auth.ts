@@ -13,4 +13,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.AUTH_GITHUB_SECRET as string,
     }),
   ],
+  session: {
+    strategy: 'jwt',
+    maxAge: 60 * 60 * 24 * 3, // 유효기간 3일
+  },
 });
