@@ -17,4 +17,17 @@ export default {
     strategy: 'jwt',
     maxAge: 60 * 60 * 24 * 3,
   },
+  pages: { signIn: '/login' },
+  callbacks: {
+    async authorized({ auth }) {
+      return !!auth?.user;
+    },
+    async session({ session, token }) {
+      if (token.sub) {
+        session.user.userId = token.sub;
+      }
+
+      return session;
+    },
+  },
 } satisfies NextAuthConfig;
