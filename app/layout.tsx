@@ -1,4 +1,5 @@
 import { ThemeProvider } from '@/components/theme/theme-provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Metadata } from 'next';
 import { Inter, Lexend } from 'next/font/google';
 import './globals.css';
@@ -38,7 +39,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
