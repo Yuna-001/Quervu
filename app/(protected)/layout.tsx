@@ -1,4 +1,4 @@
-import { LogoutButton } from '@/components/auth/logout-button';
+import { MainHeader } from '@/components/header/main-header';
 
 export default function AppLayout({
   children,
@@ -7,7 +7,7 @@ export default function AppLayout({
 }>) {
   return (
     <>
-      <LogoutButton />
+      <MainHeader />
       {children}
     </>
   );
