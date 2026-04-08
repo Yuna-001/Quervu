@@ -1,20 +1,34 @@
 'use client';
 
-import { HeaderIconTooltip } from '@/components/header/header-icon-tooltip';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
-export function LogoutButton() {
+type LogoutButtonProps = React.ComponentProps<typeof Button>;
+
+export function LogoutButton({
+  ref,
+  onClick,
+  ...props
+}: LogoutButtonProps & {
+  ref?: React.Ref<React.ComponentRef<typeof Button>>;
+}) {
   const handleLogout = () => {
     signOut({ callbackUrl: '/login' });
   };
 
   return (
-    <HeaderIconTooltip label="로그아웃">
-      <Button variant="outline" size="icon" onClick={handleLogout}>
-        <LogOut />
-      </Button>
-    </HeaderIconTooltip>
+    <Button
+      ref={ref}
+      variant="outline"
+      size="icon"
+      {...props}
+      onClick={(e) => {
+        onClick?.(e);
+        handleLogout();
+      }}
+    >
+      <LogOut />
+    </Button>
   );
 }

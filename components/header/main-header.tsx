@@ -1,4 +1,7 @@
+'use client';
+
 import { LogoutButton } from '@/components/auth/logout-button';
+import { HeaderIconTooltip } from '@/components/header/header-icon-tooltip';
 import { SettingMenu } from '@/components/header/setting-menu';
 import { DarkModeToggle } from '@/components/theme/dark-mode-toggle';
 import Link from 'next/link';
@@ -11,8 +14,12 @@ export function MainHeader() {
       </Link>
       <div className="flex gap-4 flex-wrap">
         <SettingMenu />
-        <DarkModeToggle />
-        <LogoutButton />
+        <HeaderIconTooltip label="테마 전환">
+          <DarkModeToggle />
+        </HeaderIconTooltip>
+        <HeaderIconTooltip label="로그아웃">
+          <LogoutButton />
+        </HeaderIconTooltip>
       </div>
     </header>
   );
