@@ -1,9 +1,9 @@
 'use client';
 
+import { HeaderIconTooltip } from '@/components/header/header-icon-tooltip';
 import { Button } from '@/components/ui/button';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { HeaderIconTooltip } from './header-icon-tooltip';
 
 export function DarkModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();

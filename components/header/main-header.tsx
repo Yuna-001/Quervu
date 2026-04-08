@@ -1,6 +1,6 @@
 import { LogoutButton } from '@/components/auth/logout-button';
-import { DarkModeToggle } from '@/components/header/dark-mode-toggle';
 import { SettingMenu } from '@/components/header/setting-menu';
+import { DarkModeToggle } from '@/components/theme/dark-mode-toggle';
 import Link from 'next/link';
 
 export function MainHeader() {
