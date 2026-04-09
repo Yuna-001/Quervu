@@ -1,5 +1,16 @@
 'use client';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { signOut } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -12,7 +23,7 @@ export function DeleteAccount() {
       });
 
       if (!res.ok) {
-        toast.error('회원 탈퇴에 실패하였습니다.');
+        toast.error('회원 탈퇴에 실패했습니다.');
         return;
       }
 
@@ -24,5 +35,33 @@ export function DeleteAccount() {
     }
   };
 
-  return <Button onClick={handleDeleteAccount}>회원 탈퇴</Button>;
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="outline"
+          className="hover:not-dark:border-destructive hover:not-dark:text-destructive hover:not-dark:bg-white hover:dark:bg-destructive hover:dark:border-destructive duration-150"
+        >
+          회원 탈퇴
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>회원 탈퇴를 진행하시겠습니까?</AlertDialogTitle>
+          <AlertDialogDescription>
+            탈퇴 시 계정과 모든 데이터가 삭제되며 복구할 수 없습니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>취소</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteAccount}
+            variant="destructive"
+          >
+            회원 탈퇴
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
