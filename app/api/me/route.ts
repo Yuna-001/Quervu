@@ -6,7 +6,7 @@ import { ObjectId } from 'mongodb';
 import { NextResponse } from 'next/server';
 
 // DELETE /api/me
-// 사용자의 계정을 삭제하는 핸들러
+// - 사용자의 계정을 삭제하는 핸들러
 export async function DELETE() {
   let userId: string;
 
