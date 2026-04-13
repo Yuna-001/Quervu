@@ -1,13 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
 import type { ProfileResponse } from '@/types/profile';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Button } from '../ui/button';
 
 interface FormErrors {
   position?: string;
@@ -22,6 +23,7 @@ export function ProfileForm({
   const [skillInput, setSkillInput] = useState<string>('');
   const [skills, setSkills] = useState<string[]>(initialProfile.skills);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const router = useRouter();
 
@@ -78,6 +80,9 @@ export function ProfileForm({
       return;
     }
 
+    setIsSubmitting(true);
+    let navigated = false;
+
     try {
       const res = await fetch('/api/me/profile', {
         method: 'PUT',
@@ -86,6 +91,7 @@ export function ProfileForm({
       });
 
       if (res.ok) {
+        navigated = true;
         router.push('/setting/profile');
         return;
       }
@@ -113,6 +119,9 @@ export function ProfileForm({
       toast.error('네트워크 오류가 발생했습니다.', {
         description: '잠시 후 다시 시도해주세요.',
       });
+    } finally {
+      // 리다이렉트 시 버튼 깜빡임 방지용 조건
+      if (!navigated) setIsSubmitting(false);
     }
   };
 
@@ -178,7 +187,16 @@ export function ProfileForm({
         />
         <div className="space-y-2 pt-1">{skills.join(', ')}</div>
       </div>
-      <Button className="w-full mt-5">저장</Button>
+      <Button className="w-full mt-5" disabled={isSubmitting}>
+        {isSubmitting ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            저장 중...
+          </span>
+        ) : (
+          '저장'
+        )}
+      </Button>
     </form>
   );
 }
