@@ -1,4 +1,5 @@
 import { requireUserId } from '@/lib/auth/requireUserId';
+import { MAX_EXPERIENCE } from '@/lib/constants/profile';
 import dbConnect from '@/lib/dbConnect';
 import { HttpError } from '@/lib/error';
 import ProfileModel from '@/models/profile';
@@ -61,8 +62,6 @@ export async function GET() {
     );
   }
 }
-
-const MAX_EXPERIENCE = 100 as const;
 
 // PUT /api/me/profile
 // - 사용자의 프로필을 생성 또는 업데이트하는 핸들러

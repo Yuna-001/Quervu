@@ -3,12 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MAX_EXPERIENCE } from '@/lib/constants/profile';
 import type { ProfileResponse } from '@/types/profile';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-const MAX_EXPERIENCE = 100 as const;
 
 interface FormErrors {
   position?: string;
