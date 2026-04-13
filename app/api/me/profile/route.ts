@@ -178,7 +178,6 @@ export async function PUT(req: Request) {
       },
       {
         upsert: true,
-        new: true,
       },
     );
 
