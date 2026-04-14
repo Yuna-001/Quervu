@@ -27,11 +27,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     );
   }
 
-  // 타입상 204 가능성 때문에 방어 (실제론 안 옴)
-  if (result.data === null) {
-    return <></>;
-  }
-
   const profile = result.data;
 
   if (!slug) {
