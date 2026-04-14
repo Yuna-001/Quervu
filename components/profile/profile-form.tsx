@@ -1,5 +1,7 @@
 'use client';
 
+import { TagList } from '@/components/common/tag-list';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
@@ -8,7 +10,6 @@ import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '../ui/button';
 
 interface FormErrors {
   position?: string;
@@ -125,6 +126,10 @@ export function ProfileForm({
     }
   };
 
+  const handleRemoveSkill = (index: number) => {
+    setSkills((prevSkills) => prevSkills.filter((_, i) => i !== index));
+  };
+
   const clearError = (key: keyof FormErrors) => {
     setErrors((prev) => {
       if (prev[key] === undefined) return prev;
@@ -185,7 +190,9 @@ export function ProfileForm({
           placeholder="기술 스택을 입력 후 Enter"
           id="skills"
         />
-        <div className="space-y-2 pt-1">{skills.join(', ')}</div>
+        <div className="space-y-2 pt-1">
+          <TagList tags={skills} onRemove={handleRemoveSkill} />
+        </div>
       </div>
       <Button className="w-full mt-5" disabled={isSubmitting}>
         {isSubmitting ? (

@@ -1,3 +1,4 @@
+import { TagList } from '@/components/common/tag-list';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { ProfileResponse } from '@/types/profile';
@@ -39,7 +40,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
       <div className="flex flex-col gap-2">
         <Label id="skills-label">기술 스택</Label>
         <div aria-labelledby="skills-label" className="space-y-2 mt-2">
-          {skills.length > 0 ? skills.join(', ') : emptyText}
+          {skills.length > 0 ? <TagList tags={skills} /> : emptyText}
         </div>
       </div>
       <Button asChild className="w-full mt-5">
