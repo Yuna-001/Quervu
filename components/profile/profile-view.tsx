@@ -4,9 +4,9 @@ import { Label } from '@/components/ui/label';
 import type { ProfileResponse } from '@/types/profile';
 import Link from 'next/link';
 
-interface ProfileViewProps {
+type ProfileViewProps = {
   profile: ProfileResponse;
-}
+};
 
 export function ProfileView({ profile }: ProfileViewProps) {
   const { position, experience, skills } = profile;

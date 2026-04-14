@@ -11,16 +11,16 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-interface FormErrors {
+type FormErrors = {
   position?: string;
   experience?: string;
-}
+};
 
-export function ProfileForm({
-  initialProfile,
-}: {
+type ProfileFormProps = {
   initialProfile: ProfileResponse;
-}) {
+};
+
+export function ProfileForm({ initialProfile }: ProfileFormProps) {
   const [skillInput, setSkillInput] = useState<string>('');
   const [skills, setSkills] = useState<string[]>(initialProfile.skills);
   const [errors, setErrors] = useState<FormErrors>({});
