@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
-    console.error('GET /api/me/profile unexpected error in requireUser', err);
+    console.error('GET /api/me/profile unexpected error in requireUserId', err);
 
     // 인증 이외의 예기치 못한 서버 오류
     return NextResponse.json(
@@ -76,7 +76,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
-    console.error('PUT /api/me/profile unexpected error in requireUser', err);
+    console.error('PUT /api/me/profile unexpected error in requireUserId', err);
 
     // 인증 이외의 예기치 못한 서버 오류
     return NextResponse.json(
