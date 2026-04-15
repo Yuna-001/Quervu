@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 
 type RetryButtonProps = {
   title: string;
-  description: string;
+  description?: string;
 };
 
 export function RetryButton({ title, description }: RetryButtonProps) {
