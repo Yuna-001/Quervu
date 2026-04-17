@@ -1,5 +1,7 @@
+import { MAX_EXPERIENCE } from '@/lib/constants/profile';
 import type { ProfileResponse } from '@/types/profile';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ProfileForm } from './profile-form';
 
 const mockPush = jest.fn();
@@ -20,6 +22,22 @@ const filledProfile: ProfileResponse = {
   position: '프론트엔드',
   experience: 3,
   skills: ['Next.js', 'TypeScript'],
+};
+
+const POSITION_ERROR_TEXT = '직무를 입력해주세요.' as const;
+const EXPERIENCE_ERROR_TEXT =
+  `경력은 0~${MAX_EXPERIENCE} 사이의 정수를 입력해주세요.` as const;
+
+const VALID_POSITION = '프론트엔드';
+
+const typeValidPositionAndSubmit = async (
+  user: ReturnType<typeof userEvent.setup>,
+) => {
+  await user.type(
+    screen.getByRole('textbox', { name: /직무/ }),
+    VALID_POSITION,
+  );
+  await user.click(screen.getByRole('button', { name: /저장/ }));
 };
 
 describe('ProfileForm', () => {
@@ -74,7 +92,88 @@ describe('ProfileForm', () => {
     });
   });
 
-  describe('클라이언트 유효성 검사', () => {});
+  describe('클라이언트 유효성 검사', () => {
+    let mockFetch: jest.Mock;
+    let originalFetch: typeof global.fetch;
+
+    beforeEach(() => {
+      originalFetch = global.fetch;
+      mockFetch = jest.fn();
+      global.fetch = mockFetch;
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    test('직무를 빈 값으로 저장하면 에러 문구를 표시한다', async () => {
+      const user = userEvent.setup();
+
+      render(<ProfileForm initialProfile={emptyProfile} />);
+
+      await user.click(screen.getByRole('button', { name: /저장/ }));
+
+      expect(screen.getByText(POSITION_ERROR_TEXT)).toBeInTheDocument();
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    test.each(['-1', String(MAX_EXPERIENCE + 1), '0.7'])(
+      `경력이 %s이면 에러 문구를 표시한다`,
+      async (value) => {
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        const experienceInput = screen.getByLabelText(/경력/);
+
+        await user.clear(experienceInput);
+        await user.type(experienceInput, value);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(screen.getByText(EXPERIENCE_ERROR_TEXT)).toBeInTheDocument();
+        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockPush).not.toHaveBeenCalled();
+      },
+    );
+
+    test('직무 에러가 표시된 뒤 직무를 수정하면 에러 문구가 사라진다', async () => {
+      const user = userEvent.setup();
+
+      render(<ProfileForm initialProfile={emptyProfile} />);
+
+      const positionInput = screen.getByLabelText(/직무/);
+      const submitButton = screen.getByRole('button', { name: '저장' });
+
+      await user.click(submitButton);
+
+      expect(screen.getByText(POSITION_ERROR_TEXT)).toBeInTheDocument();
+
+      await user.type(positionInput, '프론트엔드 개발자');
+
+      expect(screen.queryByText(POSITION_ERROR_TEXT)).not.toBeInTheDocument();
+    });
+
+    test('경력 에러가 표시된 뒤 경력을 수정하면 에러 문구가 사라진다', async () => {
+      const user = userEvent.setup();
+
+      render(<ProfileForm initialProfile={emptyProfile} />);
+
+      const experienceInput = screen.getByLabelText(/경력/);
+
+      await user.clear(experienceInput);
+      await user.type(experienceInput, '-1');
+
+      await typeValidPositionAndSubmit(user);
+
+      expect(screen.getByText(EXPERIENCE_ERROR_TEXT)).toBeInTheDocument();
+
+      await user.clear(experienceInput);
+
+      expect(screen.queryByText(EXPERIENCE_ERROR_TEXT)).not.toBeInTheDocument();
+    });
+  });
 
   describe('기술 스택 입력', () => {});
 
