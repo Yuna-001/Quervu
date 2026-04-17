@@ -228,7 +228,23 @@ describe('ProfileForm', () => {
     });
   });
 
-  describe('기술 스택 삭제', () => {});
+  describe('기술 스택 삭제', () => {
+    test('배지의 X 버튼을 누르면 해당 기술 스택이 삭제된다', async () => {
+      const user = userEvent.setup();
+
+      render(<ProfileForm initialProfile={emptyProfile} />);
+
+      const skillInput = screen.getByLabelText(/기술 스택/);
+
+      await user.type(skillInput, 'React{Enter}');
+      await user.type(skillInput, 'TypeScript{Enter}');
+
+      await user.click(screen.getByRole('button', { name: 'React 삭제' }));
+
+      expect(screen.queryByText('React')).not.toBeInTheDocument();
+      expect(screen.getByText('TypeScript')).toBeInTheDocument();
+    });
+  });
 
   describe('제출', () => {});
 });
