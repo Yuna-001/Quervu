@@ -175,7 +175,58 @@ describe('ProfileForm', () => {
     });
   });
 
-  describe('기술 스택 입력', () => {});
+  describe('기술 스택 입력', () => {
+    test.each([
+      ['Enter', '{Enter}'],
+      ['콤마(,)', ','],
+    ])(
+      '기술 스택을 입력 후 %s를 누르면 입력한 기술 스택이 목록에 추가되고 input이 비워진다',
+      async (_, key) => {
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        const skillInput = screen.getByLabelText(/기술 스택/);
+
+        await user.type(skillInput, `React${key}`);
+
+        expect(skillInput).toHaveValue('');
+        expect(screen.getByText('React')).toBeInTheDocument();
+      },
+    );
+
+    test.each([
+      ['Enter', '{Enter}'],
+      ['콤마(,)', ','],
+    ])(
+      '공백만 입력하고 %s를 누르면 기술 스택이 추가되지 않는다',
+      async (_, key) => {
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        const skillInput = screen.getByLabelText(/기술 스택/);
+
+        await user.type(skillInput, ` ${key}`);
+
+        expect(screen.queryByText('React')).not.toBeInTheDocument();
+        expect(screen.queryByText('TypeScript')).not.toBeInTheDocument();
+      },
+    );
+
+    test('같은 기술 스택을 다시 입력하면 중복 추가되지 않는다', async () => {
+      const user = userEvent.setup();
+
+      render(<ProfileForm initialProfile={emptyProfile} />);
+
+      const skillInput = screen.getByLabelText(/기술 스택/);
+
+      await user.type(skillInput, 'React{Enter}');
+      await user.type(skillInput, 'React{Enter}');
+
+      expect(screen.getAllByText('React')).toHaveLength(1);
+    });
+  });
 
   describe('기술 스택 삭제', () => {});
 
