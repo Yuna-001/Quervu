@@ -33,11 +33,14 @@ const VALID_POSITION = '프론트엔드';
 const typeValidPositionAndSubmit = async (
   user: ReturnType<typeof userEvent.setup>,
 ) => {
-  await user.type(
-    screen.getByRole('textbox', { name: /직무/ }),
-    VALID_POSITION,
-  );
+  await user.type(screen.getByLabelText(/직무/), VALID_POSITION);
   await user.click(screen.getByRole('button', { name: /저장/ }));
+};
+
+const SUCCESS_204 = {
+  ok: true,
+  status: 204,
+  json: async () => null,
 };
 
 describe('ProfileForm', () => {
@@ -246,5 +249,49 @@ describe('ProfileForm', () => {
     });
   });
 
-  describe('제출', () => {});
+  describe('제출', () => {
+    let mockFetch: jest.Mock;
+    let originalFetch: typeof global.fetch;
+
+    beforeEach(() => {
+      originalFetch = global.fetch;
+      mockFetch = jest.fn();
+      global.fetch = mockFetch;
+    });
+
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    describe('저장 성공', () => {
+      test('유효한 입력값으로 제출하면 프로필 저장 요청을 보낸다', async () => {
+        mockFetch.mockResolvedValue(SUCCESS_204);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith('/api/me/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...emptyProfile, position: VALID_POSITION }),
+        });
+      });
+
+      test('프로필 저장에 성공하면 프로필 보기 페이지로 이동한다', async () => {
+        mockFetch.mockResolvedValue(SUCCESS_204);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockPush).toHaveBeenCalledWith('/setting/profile');
+      });
+    });
+  });
 });
