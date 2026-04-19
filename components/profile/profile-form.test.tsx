@@ -1,6 +1,7 @@
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
+import { createDeferred } from '@/test/utils/async';
 import type { ProfileResponse } from '@/types/profile';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ProfileForm } from './profile-form';
 
@@ -10,6 +11,10 @@ jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+}));
+
+jest.mock('sonner', () => ({
+  toast: { error: jest.fn() },
 }));
 
 const emptyProfile: ProfileResponse = {
@@ -291,6 +296,38 @@ describe('ProfileForm', () => {
         await typeValidPositionAndSubmit(user);
 
         expect(mockPush).toHaveBeenCalledWith('/setting/profile');
+      });
+    });
+
+    describe('저장 요청 중 상태', () => {
+      test('저장 요청 중에는 저장 버튼이 비활성화된다', async () => {
+        const deferred = createDeferred();
+        mockFetch.mockReturnValueOnce(deferred.promise);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await user.type(screen.getByLabelText(/직무/), VALID_POSITION);
+
+        const saveButton = screen.getByRole('button', { name: /저장/ });
+
+        await user.click(saveButton);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        const loadingButton = screen.getByRole('button', { name: /저장 중/ });
+
+        expect(loadingButton).toBe(saveButton);
+        expect(loadingButton).toBeDisabled();
+
+        expect(mockPush).not.toHaveBeenCalled();
+
+        deferred.resolve(SUCCESS_204);
+
+        await waitFor(() => {
+          expect(mockPush).toHaveBeenCalledWith('/setting/profile');
+        });
       });
     });
   });
