@@ -3,6 +3,7 @@ import { createDeferred } from '@/test/utils/async';
 import type { ProfileResponse } from '@/types/profile';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
 import { ProfileForm } from './profile-form';
 
 const mockPush = jest.fn();
@@ -29,6 +30,7 @@ const filledProfile: ProfileResponse = {
   skills: ['Next.js', 'TypeScript'],
 };
 
+const SERVER_ERROR_TEXT = '서버 에러가 발생했습니다.' as const;
 const POSITION_ERROR_TEXT = '직무를 입력해주세요.' as const;
 const EXPERIENCE_ERROR_TEXT =
   `경력은 0~${MAX_EXPERIENCE} 사이의 정수를 입력해주세요.` as const;
@@ -40,6 +42,23 @@ const typeValidPositionAndSubmit = async (
 ) => {
   await user.type(screen.getByLabelText(/직무/), VALID_POSITION);
   await user.click(screen.getByRole('button', { name: /저장/ }));
+};
+
+const FAIL_500 = {
+  ok: false,
+  status: 500,
+  json: async () => ({ error: SERVER_ERROR_TEXT }),
+};
+
+const POSITION_400 = {
+  ok: false,
+  status: 400,
+  json: async () => ({ error: POSITION_ERROR_TEXT }),
+};
+const EXPERIENCE_400 = {
+  ok: false,
+  status: 400,
+  json: async () => ({ error: EXPERIENCE_ERROR_TEXT }),
 };
 
 const SUCCESS_204 = {
@@ -327,6 +346,111 @@ describe('ProfileForm', () => {
 
         await waitFor(() => {
           expect(mockPush).toHaveBeenCalledWith('/setting/profile');
+        });
+      });
+    });
+
+    describe('저장 요청 실패 처리', () => {
+      test('저장 요청이 실패하면 저장 버튼이 다시 활성화된다', async () => {
+        const deferred = createDeferred();
+        mockFetch.mockReturnValueOnce(deferred.promise);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await user.type(screen.getByLabelText(/직무/), VALID_POSITION);
+
+        const saveButton = screen.getByRole('button', { name: /저장/ });
+        await user.click(saveButton);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(saveButton).toBeDisabled();
+
+        deferred.resolve(FAIL_500);
+
+        await waitFor(() => {
+          expect(saveButton).toBeEnabled();
+        });
+
+        expect(mockPush).not.toHaveBeenCalled();
+      });
+
+      test('서버 메시지에 "직무"가 포함되면 직무 에러 문구를 표시한다', async () => {
+        mockFetch.mockResolvedValue(POSITION_400);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        expect(
+          await screen.findByText(POSITION_ERROR_TEXT),
+        ).toBeInTheDocument();
+      });
+
+      test('서버 메시지에 "경력"이 포함되면 경력 에러 문구를 표시한다', async () => {
+        mockFetch.mockResolvedValue(EXPERIENCE_400);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        const experienceInput = screen.getByLabelText(/경력/);
+        await user.clear(experienceInput);
+        await user.type(experienceInput, '3');
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        expect(
+          await screen.findByText(EXPERIENCE_ERROR_TEXT),
+        ).toBeInTheDocument();
+      });
+
+      test('서버 메시지에 "직무" 또는 "경력"이 없으면 일반 에러 토스트를 표시한다', async () => {
+        mockFetch.mockResolvedValue(FAIL_500);
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        await waitFor(() => {
+          expect(toast.error).toHaveBeenCalledWith(
+            '프로필 저장에 실패했습니다.',
+            {
+              description: '잠시 후 다시 시도해주세요.',
+            },
+          );
+        });
+      });
+
+      test('요청 중 네트워크 오류가 발생하면 네트워크 에러 토스트를 표시한다', async () => {
+        mockFetch.mockRejectedValue(new Error());
+
+        const user = userEvent.setup();
+
+        render(<ProfileForm initialProfile={emptyProfile} />);
+
+        await typeValidPositionAndSubmit(user);
+
+        expect(mockFetch).toHaveBeenCalledTimes(1);
+
+        await waitFor(() => {
+          expect(toast.error).toHaveBeenCalledWith(
+            '네트워크 오류가 발생했습니다.',
+            {
+              description: '인터넷 연결을 확인한 후 다시 시도해주세요.',
+            },
+          );
         });
       });
     });
