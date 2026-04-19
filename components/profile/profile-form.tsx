@@ -118,7 +118,7 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
       setErrors(serverErrors);
     } catch {
       toast.error('네트워크 오류가 발생했습니다.', {
-        description: '잠시 후 다시 시도해주세요.',
+        description: '인터넷 연결을 확인한 후 다시 시도해주세요.',
       });
     } finally {
       // 리다이렉트 시 버튼 깜빡임 방지용 조건
