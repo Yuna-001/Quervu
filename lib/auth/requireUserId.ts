@@ -18,7 +18,7 @@ export const requireUserId = async (): Promise<{
   const userId = session.user.userId;
 
   if (!Types.ObjectId.isValid(userId)) {
-    throw new HttpError(400, '잘못된 사용자 정보입니다.');
+    throw new HttpError(401, '잘못된 사용자 정보입니다.');
   }
 
   if (!authAdapter.getUser) {
@@ -29,7 +29,7 @@ export const requireUserId = async (): Promise<{
   const user = await authAdapter.getUser(userId);
 
   if (!user) {
-    throw new HttpError(404, '사용자를 찾을 수 없습니다.');
+    throw new HttpError(401, '사용자를 찾을 수 없습니다.');
   }
 
   return { userId };
