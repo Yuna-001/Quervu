@@ -9,22 +9,15 @@ export function DarkModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
 
   const handleToggleMode = () => {
-    if (resolvedTheme === 'dark') {
-      setTheme('light');
-    } else {
-      setTheme('dark');
-    }
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  const label =
-    resolvedTheme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
-
   return (
-    <IconTooltip label={label}>
+    <IconTooltip label="테마 전환">
       <Button
         variant="outline"
         size="icon"
-        aria-label={label}
+        aria-label="테마 전환"
         onClick={handleToggleMode}
       >
         <Moon className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
