@@ -1,5 +1,5 @@
+import { HeaderActions } from '@/components/header/header-actions';
 import Link from 'next/link';
-import { HeaderActions } from './header-actions';
 
 export function MainHeader() {
   return (

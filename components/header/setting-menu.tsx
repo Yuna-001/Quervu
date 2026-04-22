@@ -1,6 +1,6 @@
 'use client';
 
-import { HeaderIconTooltip } from '@/components/header/header-icon-tooltip';
+import { IconTooltip } from '@/components/common/icon-tooltip';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,13 +14,13 @@ import Link from 'next/link';
 export function SettingMenu() {
   return (
     <DropdownMenu>
-      <HeaderIconTooltip label="설정">
+      <IconTooltip label="설정">
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" aria-label="설정">
             <Settings />
           </Button>
         </DropdownMenuTrigger>
-      </HeaderIconTooltip>
+      </IconTooltip>
       <DropdownMenuContent
         align="end"
         onCloseAutoFocus={(e) => {
