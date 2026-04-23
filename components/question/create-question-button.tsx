@@ -1,7 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { LoadingButton } from '@/components/common/loading-button';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -40,15 +39,12 @@ export function CreateQuestionButton() {
   };
 
   return (
-    <Button disabled={isCreating} onClick={handleCreateQuestion}>
-      {isCreating ? (
-        <span className="inline-flex items-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          질문 생성 중...
-        </span>
-      ) : (
-        '새로운 질문 생성'
-      )}
-    </Button>
+    <LoadingButton
+      onClick={handleCreateQuestion}
+      isLoading={isCreating}
+      loadingText="질문 생성 중..."
+    >
+      새로운 질문 생성
+    </LoadingButton>
   );
 }

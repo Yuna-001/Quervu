@@ -1,12 +1,11 @@
 'use client';
 
+import { LoadingButton } from '@/components/common/loading-button';
 import { TagList } from '@/components/common/tag-list';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
 import type { ProfileResponse } from '@/types/profile';
-import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -194,16 +193,13 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           <TagList tags={skills} onRemove={handleRemoveSkill} />
         </div>
       </div>
-      <Button className="w-full mt-5" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            저장 중...
-          </span>
-        ) : (
-          '저장'
-        )}
-      </Button>
+      <LoadingButton
+        className="w-full mt-5"
+        isLoading={isSubmitting}
+        loadingText="저장 중..."
+      >
+        저장
+      </LoadingButton>
     </form>
   );
 }
