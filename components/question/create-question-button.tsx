@@ -1,6 +1,7 @@
 'use client';
 
 import { LoadingButton } from '@/components/common/loading-button';
+import { clientFetch } from '@/lib/fetch/client';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -14,18 +15,21 @@ export function CreateQuestionButton() {
     setIsCreating(true);
 
     try {
-      const res = await fetch('/api/questions', {
-        method: 'POST',
-      });
+      const result = await clientFetch<{ questionId: string }>(
+        '/api/questions',
+        {
+          method: 'POST',
+        },
+      );
 
-      if (!res.ok) {
+      if (!result.ok) {
         toast.error('질문 생성에 실패했습니다.', {
           description: '잠시 후 다시 시도해주세요.',
         });
         return;
       }
 
-      const { questionId } = await res.json();
+      const { questionId } = result.data;
 
       navigated = true;
       router.push(`/questions/${questionId}`);

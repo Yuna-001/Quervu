@@ -1,3 +1,5 @@
+import { clientFetch } from '@/lib/fetch/client';
+import { FAIL_500, SUCCESS_204 } from '@/test/fixtures/fetch';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signOut } from 'next-auth/react';
@@ -11,6 +13,12 @@ jest.mock('next-auth/react', () => ({
 jest.mock('sonner', () => ({
   toast: { error: jest.fn() },
 }));
+
+jest.mock('@/lib/fetch/client', () => ({
+  clientFetch: jest.fn(),
+}));
+
+const mockClientFetch = clientFetch as jest.MockedFunction<typeof clientFetch>;
 
 describe('DeleteAccount', () => {
   const setup = () => {
@@ -40,13 +48,6 @@ describe('DeleteAccount', () => {
       name: '취소',
     });
 
-  let fetchMock: jest.Mock;
-
-  beforeEach(() => {
-    fetchMock = jest.fn();
-    global.fetch = fetchMock;
-  });
-
   test('회원 탈퇴 버튼 클릭 시 AlertDialog가 열린다', async () => {
     const { user } = setup();
     const dialog = await openDialog(user);
@@ -55,20 +56,21 @@ describe('DeleteAccount', () => {
   });
 
   test('AlertDialogAction 클릭 시 DELETE /api/me 요청을 보낸다', async () => {
-    fetchMock.mockResolvedValueOnce({ ok: true });
+    mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
     const { user } = setup();
     const dialog = await openDialog(user);
 
     await user.click(getConfirmButton(dialog));
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/me', {
+    expect(mockClientFetch).toHaveBeenCalledWith('/api/me', {
       method: 'DELETE',
+      expectNoContent: true,
     });
   });
 
   test('회원 탈퇴 요청이 성공하면 callbackUrl이 /login인 signOut을 호출한다', async () => {
-    fetchMock.mockResolvedValueOnce({ ok: true });
+    mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
     const { user } = setup();
     const dialog = await openDialog(user);
@@ -81,7 +83,7 @@ describe('DeleteAccount', () => {
   });
 
   test('회원 탈퇴 요청이 실패하면 toast.error를 호출한다', async () => {
-    fetchMock.mockResolvedValueOnce({ ok: false });
+    mockClientFetch.mockResolvedValueOnce(FAIL_500);
 
     const { user } = setup();
     const dialog = await openDialog(user);
@@ -94,7 +96,7 @@ describe('DeleteAccount', () => {
   });
 
   test('네트워크 오류 발생 시 description을 포함한 toast.error를 호출한다', async () => {
-    fetchMock.mockRejectedValueOnce(new Error());
+    mockClientFetch.mockRejectedValueOnce(new Error());
 
     const { user } = setup();
     const dialog = await openDialog(user);
@@ -118,7 +120,7 @@ describe('DeleteAccount', () => {
       expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(mockClientFetch).not.toHaveBeenCalled();
     expect(toast.error).not.toHaveBeenCalled();
     expect(signOut).not.toHaveBeenCalled();
   });
