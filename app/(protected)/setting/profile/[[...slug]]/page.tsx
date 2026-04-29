@@ -1,7 +1,7 @@
 import { RetryButton } from '@/components/common/retry-button';
 import { ProfileForm } from '@/components/profile/profile-form';
 import { ProfileView } from '@/components/profile/profile-view';
-import { serverFetch } from '@/lib/serverFetch';
+import { serverFetch } from '@/lib/fetch/server';
 import type { ProfileResponse } from '@/types/profile';
 import { notFound } from 'next/navigation';
 

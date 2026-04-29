@@ -12,17 +12,19 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { clientFetch } from '@/lib/fetch/client';
 import { signOut } from 'next-auth/react';
 import { toast } from 'sonner';
 
 export function DeleteAccount() {
   const handleDeleteAccount = async () => {
     try {
-      const res = await fetch(`/api/me`, {
+      const result = await clientFetch(`/api/me`, {
         method: 'DELETE',
+        expectNoContent: true,
       });
 
-      if (!res.ok) {
+      if (!result.ok) {
         toast.error('회원 탈퇴에 실패했습니다.');
         return;
       }

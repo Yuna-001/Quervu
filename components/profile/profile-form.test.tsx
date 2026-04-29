@@ -1,4 +1,10 @@
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
+import { clientFetch } from '@/lib/fetch/client';
+import {
+  type FetchErrorResult,
+  type FetchNoContentSuccessResult,
+} from '@/lib/fetch/core';
+import { FAIL_500, SUCCESS_204 } from '@/test/fixtures/fetch';
 import { createDeferred } from '@/test/utils/async';
 import type { ProfileResponse } from '@/types/profile';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -18,7 +24,12 @@ jest.mock('sonner', () => ({
   toast: { error: jest.fn() },
 }));
 
-const SERVER_ERROR_TEXT = '서버 에러가 발생했습니다.' as const;
+jest.mock('@/lib/fetch/client', () => ({
+  clientFetch: jest.fn(),
+}));
+
+const mockClientFetch = clientFetch as jest.MockedFunction<typeof clientFetch>;
+
 const POSITION_ERROR_TEXT = '직무를 입력해주세요.' as const;
 const EXPERIENCE_ERROR_TEXT =
   `경력은 0~${MAX_EXPERIENCE} 사이의 정수를 입력해주세요.` as const;
@@ -62,42 +73,17 @@ const submitWithValidPosition = async (
   await user.click(getSaveButton());
 };
 
-const createMockResponse = ({
-  ok,
-  status,
-  error,
-}: {
-  ok: boolean;
-  status: number;
-  error?: string;
-}) => ({
-  ok,
-  status,
-  json: async () => (error ? { error } : null),
-});
-
-const SUCCESS_204 = createMockResponse({
-  ok: true,
-  status: 204,
-});
-
-const FAIL_POSITION_400 = createMockResponse({
+const FAIL_POSITION_400 = {
   ok: false,
   status: 400,
-  error: POSITION_ERROR_TEXT,
-});
+  message: POSITION_ERROR_TEXT,
+} as const;
 
-const FAIL_EXPERIENCE_400 = createMockResponse({
+const FAIL_EXPERIENCE_400 = {
   ok: false,
   status: 400,
-  error: EXPERIENCE_ERROR_TEXT,
-});
-
-const FAIL_500 = createMockResponse({
-  ok: false,
-  status: 500,
-  error: SERVER_ERROR_TEXT,
-});
+  message: EXPERIENCE_ERROR_TEXT,
+} as const;
 
 const renderProfileForm = (initialProfile = emptyProfile) => {
   const user = userEvent.setup();
@@ -152,13 +138,13 @@ describe('ProfileForm', () => {
   });
 
   describe('클라이언트 유효성 검사', () => {
-    let mockFetch: jest.Mock;
+    let mockClientFetch: jest.Mock;
     let originalFetch: typeof global.fetch;
 
     beforeEach(() => {
       originalFetch = global.fetch;
-      mockFetch = jest.fn();
-      global.fetch = mockFetch;
+      mockClientFetch = jest.fn();
+      global.fetch = mockClientFetch;
     });
 
     afterEach(() => {
@@ -171,7 +157,7 @@ describe('ProfileForm', () => {
       await user.click(getSaveButton());
 
       expect(screen.getByText(POSITION_ERROR_TEXT)).toBeInTheDocument();
-      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockClientFetch).not.toHaveBeenCalled();
       expect(mockPush).not.toHaveBeenCalled();
     });
 
@@ -188,7 +174,7 @@ describe('ProfileForm', () => {
         await submitWithValidPosition(user);
 
         expect(screen.getByText(EXPERIENCE_ERROR_TEXT)).toBeInTheDocument();
-        expect(mockFetch).not.toHaveBeenCalled();
+        expect(mockClientFetch).not.toHaveBeenCalled();
         expect(mockPush).not.toHaveBeenCalled();
       },
     );
@@ -289,37 +275,25 @@ describe('ProfileForm', () => {
   });
 
   describe('제출', () => {
-    let mockFetch: jest.Mock;
-    let originalFetch: typeof global.fetch;
-
-    beforeEach(() => {
-      originalFetch = global.fetch;
-      mockFetch = jest.fn();
-      global.fetch = mockFetch;
-    });
-
-    afterEach(() => {
-      global.fetch = originalFetch;
-    });
-
     describe('저장 성공', () => {
       test('유효한 입력값으로 제출하면 프로필 저장 요청을 보낸다', async () => {
-        mockFetch.mockResolvedValue(SUCCESS_204);
+        mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
         const { user } = renderProfileForm();
 
         await submitWithValidPosition(user);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
-        expect(mockFetch).toHaveBeenCalledWith('/api/me/profile', {
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledWith('/api/me/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(makeProfile({ position: VALID_POSITION })),
+          expectNoContent: true,
         });
       });
 
       test('프로필 저장에 성공하면 프로필 보기 페이지로 이동한다', async () => {
-        mockFetch.mockResolvedValue(SUCCESS_204);
+        mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
         const { user } = renderProfileForm();
 
@@ -331,8 +305,10 @@ describe('ProfileForm', () => {
 
     describe('저장 요청 중 상태', () => {
       test('저장 요청 중에는 저장 버튼이 비활성화된다', async () => {
-        const deferred = createDeferred();
-        mockFetch.mockReturnValueOnce(deferred.promise);
+        const deferred = createDeferred<
+          FetchNoContentSuccessResult | FetchErrorResult
+        >();
+        mockClientFetch.mockReturnValueOnce(deferred.promise);
 
         const { user } = renderProfileForm();
 
@@ -342,7 +318,7 @@ describe('ProfileForm', () => {
 
         await user.click(saveButton);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
 
         const loadingButton = getSaveButton(/저장 중/);
 
@@ -361,8 +337,10 @@ describe('ProfileForm', () => {
 
     describe('저장 요청 실패 처리', () => {
       test('저장 요청이 실패하면 저장 버튼이 다시 활성화된다', async () => {
-        const deferred = createDeferred();
-        mockFetch.mockReturnValueOnce(deferred.promise);
+        const deferred = createDeferred<
+          FetchNoContentSuccessResult | FetchErrorResult
+        >();
+        mockClientFetch.mockReturnValueOnce(deferred.promise);
 
         const { user } = renderProfileForm();
 
@@ -371,7 +349,7 @@ describe('ProfileForm', () => {
         const saveButton = getSaveButton();
         await user.click(saveButton);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
         expect(saveButton).toBeDisabled();
 
         deferred.resolve(FAIL_500);
@@ -384,13 +362,13 @@ describe('ProfileForm', () => {
       });
 
       test('서버 메시지에 "직무"가 포함되면 직무 에러 문구를 표시한다', async () => {
-        mockFetch.mockResolvedValue(FAIL_POSITION_400);
+        mockClientFetch.mockResolvedValueOnce(FAIL_POSITION_400);
 
         const { user } = renderProfileForm();
 
         await submitWithValidPosition(user);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
 
         expect(
           await screen.findByText(POSITION_ERROR_TEXT),
@@ -398,7 +376,7 @@ describe('ProfileForm', () => {
       });
 
       test('서버 메시지에 "경력"이 포함되면 경력 에러 문구를 표시한다', async () => {
-        mockFetch.mockResolvedValue(FAIL_EXPERIENCE_400);
+        mockClientFetch.mockResolvedValueOnce(FAIL_EXPERIENCE_400);
 
         const { user } = renderProfileForm();
 
@@ -408,7 +386,7 @@ describe('ProfileForm', () => {
 
         await submitWithValidPosition(user);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
 
         expect(
           await screen.findByText(EXPERIENCE_ERROR_TEXT),
@@ -416,13 +394,13 @@ describe('ProfileForm', () => {
       });
 
       test('서버 메시지에 "직무" 또는 "경력"이 없으면 일반 에러 토스트를 표시한다', async () => {
-        mockFetch.mockResolvedValue(FAIL_500);
+        mockClientFetch.mockResolvedValueOnce(FAIL_500);
 
         const { user } = renderProfileForm();
 
         await submitWithValidPosition(user);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
 
         await waitFor(() => {
           expect(toast.error).toHaveBeenCalledWith(
@@ -435,13 +413,13 @@ describe('ProfileForm', () => {
       });
 
       test('요청 중 네트워크 오류가 발생하면 네트워크 에러 토스트를 표시한다', async () => {
-        mockFetch.mockRejectedValue(new Error());
+        mockClientFetch.mockRejectedValue(new Error());
 
         const { user } = renderProfileForm();
 
         await submitWithValidPosition(user);
 
-        expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockClientFetch).toHaveBeenCalledTimes(1);
 
         await waitFor(() => {
           expect(toast.error).toHaveBeenCalledWith(

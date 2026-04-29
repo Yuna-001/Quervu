@@ -1,12 +1,12 @@
 'use client';
 
+import { LoadingButton } from '@/components/common/loading-button';
 import { TagList } from '@/components/common/tag-list';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MAX_EXPERIENCE } from '@/lib/constants/profile';
+import { clientFetch } from '@/lib/fetch/client';
 import type { ProfileResponse } from '@/types/profile';
-import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -85,27 +85,26 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
     let navigated = false;
 
     try {
-      const res = await fetch('/api/me/profile', {
+      const result = await clientFetch('/api/me/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ position, experience, skills }),
+        expectNoContent: true,
       });
 
-      if (res.ok) {
+      if (result.ok) {
         navigated = true;
         router.push('/setting/profile');
         return;
       }
 
-      const errorResponse = await res.json();
-
       const serverErrors: FormErrors = {};
 
-      if (errorResponse.error.includes('직무')) {
-        serverErrors.position = errorResponse.error;
+      if (result.message.includes('직무')) {
+        serverErrors.position = result.message;
       }
-      if (errorResponse.error.includes('경력')) {
-        serverErrors.experience = errorResponse.error;
+      if (result.message.includes('경력')) {
+        serverErrors.experience = result.message;
       }
 
       if (Object.keys(serverErrors).length === 0) {
@@ -194,16 +193,13 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
           <TagList tags={skills} onRemove={handleRemoveSkill} />
         </div>
       </div>
-      <Button className="w-full mt-5" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            저장 중...
-          </span>
-        ) : (
-          '저장'
-        )}
-      </Button>
+      <LoadingButton
+        className="w-full mt-5"
+        isLoading={isSubmitting}
+        loadingText="저장 중..."
+      >
+        저장
+      </LoadingButton>
     </form>
   );
 }
