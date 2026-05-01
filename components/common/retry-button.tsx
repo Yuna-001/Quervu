@@ -1,8 +1,9 @@
 'use client';
 
-import { RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '../ui/button';
+import { useTransition } from 'react';
 
 type RetryButtonProps = {
   title: string;
@@ -11,6 +12,8 @@ type RetryButtonProps = {
 
 export function RetryButton({ title, description }: RetryButtonProps) {
   const router = useRouter();
+
+  const [isPending, startTransition] = useTransition();
 
   return (
     <div className="flex max-sm:flex-col gap-4 justify-center items-center">
@@ -25,13 +28,19 @@ export function RetryButton({ title, description }: RetryButtonProps) {
           </p>
         )}
       </div>
-
       <Button
         variant="outline"
-        onClick={() => router.refresh()}
+        onClick={() => {
+          startTransition(() => {
+            router.refresh();
+          });
+        }}
         aria-label="재시도"
+        disabled={isPending}
       >
-        <RotateCcw />
+        <RefreshCcw
+          className={`${isPending ? 'animate-spin direction-[reverse] animation-duration-[0.5s]' : ''}`}
+        />
       </Button>
     </div>
   );
