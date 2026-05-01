@@ -2,19 +2,12 @@ import { requireUserId } from '@/lib/auth/requireUserId';
 import dbConnect from '@/lib/dbConnect';
 import { HttpError } from '@/lib/error';
 import QuestionModel from '@/models/question';
+import type { QuestionDetailResponse } from '@/types/question';
 import { Types } from 'mongoose';
 import { NextResponse } from 'next/server';
 
 interface RouteParams {
   params: Promise<{ questionId: string }>;
-}
-
-interface QuestionResponse {
-  content: string;
-  idealAnswer: string;
-  tags: string[];
-  isBookmarked: boolean;
-  createdAt: Date;
 }
 
 // GET /api/questions/[questionId]
@@ -67,7 +60,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
         isBookmarked: 1,
         createdAt: 1,
       },
-    ).lean<QuestionResponse | null>();
+    ).lean<QuestionDetailResponse | null>();
 
     // 질문이 존재하지 않을 경우 404 반환
     if (!question) {
@@ -78,7 +71,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
     }
 
     // 질문이 존재하는 경우 질문 정보 반환
-    return NextResponse.json<QuestionResponse>(question, { status: 200 });
+    return NextResponse.json<QuestionDetailResponse>(question, { status: 200 });
   } catch (err) {
     console.error(`GET /api/questions/${questionId} db error`, err);
 
