@@ -34,7 +34,7 @@ export default async function QuestionLayout({
 
   const { tags, content: question, isBookmarked, idealAnswer } = result.data;
 
-  // 북마크, 모범답안, 질문 삭제 컴포넌트 추가 예정
+  // 북마크, 질문 삭제 컴포넌트 추가 예정
   // children에는 사용자 답변 폼이나 피드백 내용이 들어갈 예정
 
   return (

@@ -6,9 +6,9 @@ import type { QuestionDetailResponse } from '@/types/question';
 import { Types } from 'mongoose';
 import { NextResponse } from 'next/server';
 
-interface RouteParams {
+type RouteParams = {
   params: Promise<{ questionId: string }>;
-}
+};
 
 // GET /api/questions/[questionId]
 // - 사용자 소유의 특정 질문을 조회하는 핸들러
