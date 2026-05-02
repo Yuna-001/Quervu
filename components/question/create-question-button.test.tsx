@@ -1,11 +1,7 @@
 import { clientFetch } from '@/lib/fetch/client';
-import type {
-  FetchErrorResult,
-  FetchInit,
-  FetchNoContentSuccessResult,
-  FetchSuccessResult,
-} from '@/lib/fetch/core';
+import type { FetchErrorResult, FetchSuccessResult } from '@/lib/fetch/core';
 import { FAIL_500 } from '@/test/fixtures/fetch';
+import type { MockClientFetch } from '@/test/types';
 import { createDeferred } from '@/test/utils/async';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -28,14 +24,7 @@ jest.mock('@/lib/fetch/client', () => ({
   clientFetch: jest.fn(),
 }));
 
-type ClientFetchMock = jest.Mock<
-  Promise<
-    FetchSuccessResult<unknown> | FetchNoContentSuccessResult | FetchErrorResult
-  >,
-  [path: string, init?: FetchInit]
->;
-
-const mockClientFetch = clientFetch as unknown as ClientFetchMock;
+const mockClientFetch = clientFetch as unknown as MockClientFetch;
 
 const QUESTION_ID = 'q1';
 
