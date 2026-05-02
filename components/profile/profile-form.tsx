@@ -52,6 +52,8 @@ export function ProfileForm({ initialProfile }: ProfileFormProps) {
   ) => {
     event.preventDefault();
 
+    if (isSubmitting) return;
+
     const newErrors: FormErrors = {};
 
     const fd = new FormData(event.target as HTMLFormElement);
