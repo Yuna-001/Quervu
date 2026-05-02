@@ -8,11 +8,11 @@ import type { Profile } from '@/types/profile';
 import { Types } from 'mongoose';
 import { NextResponse } from 'next/server';
 
-interface GeneratedQuestion {
+type GeneratedQuestion = {
   content: string;
   idealAnswer: string;
   tags: string[];
-}
+};
 
 /**
  * 사용자 소개 정보를 기반으로 OpenAI에 요청하여
