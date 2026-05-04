@@ -11,6 +11,8 @@ export function CreateQuestionButton() {
   const [isCreating, setIsCreating] = useState<boolean>(false);
 
   const handleCreateQuestion = async () => {
+    if (isCreating) return;
+
     let navigated = false;
     setIsCreating(true);
 

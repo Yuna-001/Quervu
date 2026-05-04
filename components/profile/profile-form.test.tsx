@@ -5,6 +5,7 @@ import {
   type FetchNoContentSuccessResult,
 } from '@/lib/fetch/core';
 import { FAIL_500, SUCCESS_204 } from '@/test/fixtures/fetch';
+import type { MockClientFetch } from '@/test/types';
 import { createDeferred } from '@/test/utils/async';
 import type { ProfileResponse } from '@/types/profile';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -28,7 +29,7 @@ jest.mock('@/lib/fetch/client', () => ({
   clientFetch: jest.fn(),
 }));
 
-const mockClientFetch = clientFetch as jest.MockedFunction<typeof clientFetch>;
+const mockClientFetch = clientFetch as unknown as MockClientFetch;
 
 const POSITION_ERROR_TEXT = '직무를 입력해주세요.' as const;
 const EXPERIENCE_ERROR_TEXT =
