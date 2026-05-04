@@ -37,7 +37,9 @@ export function DeleteQuestionButton({
       });
 
       if (!result.ok) {
-        toast.error('질문 삭제에 실패했습니다.');
+        toast.error('질문 삭제에 실패했습니다.', {
+          description: '잠시 후 다시 시도해주세요.',
+        });
         return;
       }
 
