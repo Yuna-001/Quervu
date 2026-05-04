@@ -5,7 +5,7 @@ import { Bookmark } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-type QuestionBookmarkProps = {
+type QuestionBookmarkButtonProps = {
   questionId: string;
   initialIsBookmarked: boolean;
   className?: string;
@@ -17,7 +17,7 @@ export function QuestionBookmarkButton({
   initialIsBookmarked,
   className,
   size = 32,
-}: QuestionBookmarkProps) {
+}: QuestionBookmarkButtonProps) {
   const [isBookmarked, setIsBookmarked] = useState(initialIsBookmarked);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -65,7 +65,7 @@ export function QuestionBookmarkButton({
       className={`cursor-pointer ${className ?? ''}`}
     >
       <Bookmark
-        className={` stroke-orange-400 stroke-1 ${
+        className={`stroke-orange-400 stroke-2 ${
           isBookmarked ? 'fill-orange-400' : 'fill-transparent'
         }`}
         size={size}
