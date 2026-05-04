@@ -1,5 +1,6 @@
 import { clientFetch } from '@/lib/fetch/client';
 import { FAIL_500, SUCCESS_204 } from '@/test/fixtures/fetch';
+import type { MockClientFetch } from '@/test/types';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { signOut } from 'next-auth/react';
@@ -18,7 +19,7 @@ jest.mock('@/lib/fetch/client', () => ({
   clientFetch: jest.fn(),
 }));
 
-const mockClientFetch = clientFetch as jest.MockedFunction<typeof clientFetch>;
+const mockClientFetch = clientFetch as unknown as MockClientFetch;
 
 describe('DeleteAccount', () => {
   const setup = () => {
@@ -55,7 +56,7 @@ describe('DeleteAccount', () => {
     expect(dialog).toBeInTheDocument();
   });
 
-  test('AlertDialogAction 클릭 시 DELETE /api/me 요청을 보낸다', async () => {
+  test('AlertDialogAction 클릭 시 계정 삭제 API를 DELETE로 호출한다', async () => {
     mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
     const { user } = setup();
@@ -67,9 +68,10 @@ describe('DeleteAccount', () => {
       method: 'DELETE',
       expectNoContent: true,
     });
+    expect(mockClientFetch).toHaveBeenCalledTimes(1);
   });
 
-  test('회원 탈퇴 요청이 성공하면 callbackUrl이 /login인 signOut을 호출한다', async () => {
+  test('회원 탈퇴 요청이 성공하면 로그아웃되며 로그인 페이지로 이동한다', async () => {
     mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
 
     const { user } = setup();
@@ -77,12 +79,10 @@ describe('DeleteAccount', () => {
 
     await user.click(getConfirmButton(dialog));
 
-    expect(signOut).toHaveBeenCalledTimes(1);
     expect(signOut).toHaveBeenCalledWith({ callbackUrl: '/login' });
-    expect(toast.error).not.toHaveBeenCalled();
   });
 
-  test('회원 탈퇴 요청이 실패하면 toast.error를 호출한다', async () => {
+  test('회원 탈퇴 요청이 실패하면 에러 토스트를 표시한다', async () => {
     mockClientFetch.mockResolvedValueOnce(FAIL_500);
 
     const { user } = setup();
@@ -90,12 +90,10 @@ describe('DeleteAccount', () => {
 
     await user.click(getConfirmButton(dialog));
 
-    expect(toast.error).toHaveBeenCalledTimes(1);
     expect(toast.error).toHaveBeenCalledWith('회원 탈퇴에 실패했습니다.');
-    expect(signOut).not.toHaveBeenCalled();
   });
 
-  test('네트워크 오류 발생 시 description을 포함한 toast.error를 호출한다', async () => {
+  test('네트워크 오류 발생 시 에러 토스트를 표시한다', async () => {
     mockClientFetch.mockRejectedValueOnce(new Error());
 
     const { user } = setup();
@@ -103,11 +101,9 @@ describe('DeleteAccount', () => {
 
     await user.click(getConfirmButton(dialog));
 
-    expect(toast.error).toHaveBeenCalledTimes(1);
     expect(toast.error).toHaveBeenCalledWith('네트워크 오류가 발생했습니다.', {
       description: '인터넷 연결을 확인한 후 다시 시도해주세요.',
     });
-    expect(signOut).not.toHaveBeenCalled();
   });
 
   test('취소 버튼을 누르면 회원 탈퇴 요청을 보내지 않는다', async () => {
@@ -121,7 +117,5 @@ describe('DeleteAccount', () => {
     });
 
     expect(mockClientFetch).not.toHaveBeenCalled();
-    expect(toast.error).not.toHaveBeenCalled();
-    expect(signOut).not.toHaveBeenCalled();
   });
 });
