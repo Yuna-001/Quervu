@@ -1,0 +1,131 @@
+import { clientFetch } from '@/lib/fetch/client';
+import { FAIL_500, SUCCESS_204 } from '@/test/fixtures/fetch';
+import type { MockClientFetch } from '@/test/types';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { toast } from 'sonner';
+import { DeleteQuestionButton } from './delete-question-button';
+
+const mockPush = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+  }),
+}));
+
+jest.mock('sonner', () => ({
+  toast: { error: jest.fn() },
+}));
+
+jest.mock('@/lib/fetch/client', () => ({
+  clientFetch: jest.fn(),
+}));
+
+const mockClientFetch = clientFetch as unknown as MockClientFetch;
+
+const QUESTION_ID = 'q1';
+
+describe('DeleteQuestionButton', () => {
+  const setup = () => {
+    const user = userEvent.setup();
+    render(<DeleteQuestionButton questionId={QUESTION_ID} />);
+
+    return { user };
+  };
+
+  const openDialog = async (user: ReturnType<typeof userEvent.setup>) => {
+    await user.click(
+      screen.getByRole('button', {
+        name: '질문 삭제',
+      }),
+    );
+
+    return screen.findByRole('alertdialog');
+  };
+
+  const getConfirmButton = (dialog: HTMLElement) =>
+    within(dialog).getByRole('button', {
+      name: '삭제',
+    });
+
+  const getCancelButton = (dialog: HTMLElement) =>
+    within(dialog).getByRole('button', {
+      name: '취소',
+    });
+
+  test('질문 삭제 버튼 클릭 시 AlertDialog가 열린다', async () => {
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    expect(dialog).toBeInTheDocument();
+  });
+
+  test('AlertDialogAction을 클릭 시 질문 삭제 API를 DELETE로 호출한다', async () => {
+    mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
+
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    await user.click(getConfirmButton(dialog));
+
+    expect(mockClientFetch).toHaveBeenCalledWith(
+      `/api/questions/${QUESTION_ID}`,
+      {
+        method: 'DELETE',
+        expectNoContent: true,
+      },
+    );
+    expect(mockClientFetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('질문 삭제 성공 시 메인 페이지로 이동한다', async () => {
+    mockClientFetch.mockResolvedValueOnce(SUCCESS_204);
+
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    await user.click(getConfirmButton(dialog));
+
+    expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  test('질문 삭제 요청이 실패하면 에러 토스트를 표시한다', async () => {
+    mockClientFetch.mockResolvedValueOnce(FAIL_500);
+
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    await user.click(getConfirmButton(dialog));
+
+    expect(toast.error).toHaveBeenCalledWith('질문 삭제에 실패했습니다.', {
+      description: '잠시 후 다시 시도해주세요.',
+    });
+  });
+
+  test('네트워크 오류 발생 시 에러 토스트를 표시한다', async () => {
+    mockClientFetch.mockRejectedValueOnce(new Error());
+
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    await user.click(getConfirmButton(dialog));
+
+    expect(toast.error).toHaveBeenCalledWith('네트워크 오류가 발생했습니다.', {
+      description: '인터넷 연결을 확인한 후 다시 시도해주세요.',
+    });
+  });
+
+  test('취소 버튼을 누르면 질문 삭제 요청을 보내지 않는다', async () => {
+    const { user } = setup();
+    const dialog = await openDialog(user);
+
+    await user.click(getCancelButton(dialog));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
+
+    expect(mockClientFetch).not.toHaveBeenCalled();
+  });
+});
