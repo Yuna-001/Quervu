@@ -81,3 +81,65 @@ export async function GET(_req: Request, { params }: RouteParams) {
     );
   }
 }
+
+// DELETE /api/questions/[questionId]
+// - 사용자 소유의 특정 질문을 삭제하는 핸들러
+export async function DELETE(_req: Request, { params }: RouteParams) {
+  const { questionId } = await params;
+
+  let userId: string;
+
+  try {
+    ({ userId } = await requireUserId());
+  } catch (err) {
+    if (err instanceof HttpError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+
+    console.error(
+      `DELETE /api/questions/${questionId} unexpected error in requireUserId`,
+      err,
+    );
+
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 },
+    );
+  }
+
+  // questionId 유효성 검사
+  if (!Types.ObjectId.isValid(questionId)) {
+    return NextResponse.json(
+      { error: '잘못된 질문 ID입니다.' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    await dbConnect();
+
+    // 질문 삭제
+    const deleteResult = await QuestionModel.deleteOne({
+      _id: questionId,
+      userId,
+    });
+
+    // 질문이 존재하지 않을 경우 404 반환
+    if (deleteResult.deletedCount === 0) {
+      return NextResponse.json(
+        { error: '해당 질문을 찾을 수 없습니다.' },
+        { status: 404 },
+      );
+    }
+
+    // 삭제 성공 (응답 바디 없음)
+    return new NextResponse(null, { status: 204 });
+  } catch (err) {
+    console.error(`DELETE /api/questions/${questionId} db error`, err);
+
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 },
+    );
+  }
+}

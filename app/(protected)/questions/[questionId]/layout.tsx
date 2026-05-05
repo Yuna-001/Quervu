@@ -1,5 +1,6 @@
 import { QuestionBookmarkButton } from '@/components/bookmark/question-bookmark-button';
 import { RetryButton } from '@/components/common/retry-button';
+import { DeleteQuestionButton } from '@/components/question/delete-question-button';
 import { QuestionDetailSection } from '@/components/question/question-detail-section';
 import { serverFetch } from '@/lib/fetch/server';
 import type { QuestionDetailResponse } from '@/types/question';
@@ -41,12 +42,15 @@ export default async function QuestionLayout({
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">
-        <QuestionBookmarkButton
-          questionId={questionId}
-          initialIsBookmarked={isBookmarked}
-          className="self-end"
-          size={26}
-        />
+        <div className="flex justify-end gap-3">
+          <QuestionBookmarkButton
+            questionId={questionId}
+            initialIsBookmarked={isBookmarked}
+            size={26}
+          />
+          <DeleteQuestionButton questionId={questionId} size={26} />
+        </div>
+
         <QuestionDetailSection
           question={question}
           tags={tags}
