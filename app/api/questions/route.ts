@@ -5,7 +5,144 @@ import { HttpError } from '@/lib/error';
 import ProfileModel from '@/models/profile';
 import QuestionModel from '@/models/question';
 import type { Profile } from '@/types/profile';
+import { Types } from 'mongoose';
 import { NextResponse } from 'next/server';
+
+interface QuestionCommonFields {
+  content: string;
+  isBookmarked: boolean;
+  tags: string[];
+  createdAt: Date;
+}
+
+interface QuestionDoc extends QuestionCommonFields {
+  _id: Types.ObjectId;
+}
+
+interface QuestionListItem extends QuestionCommonFields {
+  questionId: string;
+}
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 30;
+const MAX_LIMIT = 100;
+
+// GET /api/questions
+// - 질문 목록을 조회하는 핸들러 (페이지네이션, 북마크 필터 지원)
+export async function GET(req: Request) {
+  let userId: string;
+
+  try {
+    ({ userId } = await requireUserId());
+  } catch (err) {
+    if (err instanceof HttpError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+
+    console.error('GET /api/questions unexpected error in requireUserId', err);
+
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 },
+    );
+  }
+
+  // 페이지네이션 / 필터 쿼리 파라미터 파싱 및 보정
+  const { searchParams } = new URL(req.url);
+
+  // page: 숫자가 아니면 기본값, 1보다 작으면 1로 보정
+  const pageParam = Number(searchParams.get('page'));
+  const rawPage = Number.isFinite(pageParam)
+    ? Math.floor(pageParam)
+    : DEFAULT_PAGE;
+  const page = Math.max(DEFAULT_PAGE, rawPage);
+
+  // limit(한 페이지당 질문 개수): 숫자가 아니면 기본값, 1보다 작으면 기본값, 최대 MAX_LIMIT까지만 허용
+  const limitParam = Number(searchParams.get('limit'));
+  const rawLimit = Number.isFinite(limitParam) ? limitParam : DEFAULT_LIMIT;
+  const baseLimit = rawLimit > 0 ? Math.floor(rawLimit) : DEFAULT_LIMIT;
+  const limit = Math.min(Math.max(baseLimit, 1), MAX_LIMIT);
+
+  // isBookmarkedFilter: 'true' | 'false'일 때만 필터로 사용, 그 외에는 필터 미적용
+  const isBookmarkedParam = searchParams.get('isBookmarked');
+  const isBookmarkedFilter: boolean | null =
+    isBookmarkedParam === 'true'
+      ? true
+      : isBookmarkedParam === 'false'
+        ? false
+        : null;
+
+  // DB 조회에 사용할 필터 구성
+  const filter: { userId: Types.ObjectId; isBookmarked?: boolean } = {
+    userId: new Types.ObjectId(userId),
+  };
+
+  if (isBookmarkedFilter !== null) {
+    filter.isBookmarked = isBookmarkedFilter;
+  }
+
+  try {
+    await dbConnect();
+
+    // 전체 질문 개수, 현재 페이지 질문 목록 조회
+    const [totalCount, questionDocs] = await Promise.all([
+      QuestionModel.countDocuments(filter),
+      QuestionModel.find(filter, {
+        _id: 1,
+        content: 1,
+        tags: 1,
+        isBookmarked: 1,
+        createdAt: 1,
+      })
+        .sort({
+          lastActivityAt: -1, // 최근 활동(질문 생성/답변) 순으로 정렬
+          createdAt: -1, // 최근 생성된 순으로 정렬
+          _id: -1,
+        })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean<QuestionDoc[]>(),
+    ]);
+
+    // 응답에 사용할 형태로 매핑
+    const questionList: QuestionListItem[] = questionDocs.map((doc) => ({
+      questionId: doc._id.toString(),
+      content: doc.content,
+      isBookmarked: doc.isBookmarked,
+      tags: doc.tags,
+      createdAt: doc.createdAt,
+    }));
+
+    // 페이지네이션 메타데이터 계산
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+
+    // 질문 목록 응답
+    return NextResponse.json(
+      {
+        items: questionList,
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNextPage,
+      },
+      { status: 200 },
+    );
+  } catch (err) {
+    console.error(`GET /api/questions db error`, {
+      err,
+      page,
+      limit,
+      isBookmarkedFilter,
+    });
+
+    return NextResponse.json(
+      { error: '서버 에러가 발생했습니다.' },
+      { status: 500 },
+    );
+  }
+}
 
 type GeneratedQuestion = {
   content: string;

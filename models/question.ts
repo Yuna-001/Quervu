@@ -14,7 +14,6 @@ const questionSchema = new Schema<QuestionDocument>({
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
-    index: true,
   },
   content: {
     type: String,
@@ -52,6 +51,13 @@ const questionSchema = new Schema<QuestionDocument>({
     type: Date,
     default: Date.now,
   },
+});
+
+questionSchema.index({
+  userId: 1,
+  lastActivityAt: -1,
+  createdAt: -1,
+  _id: -1,
 });
 
 export default mongoose.models.Question ||
