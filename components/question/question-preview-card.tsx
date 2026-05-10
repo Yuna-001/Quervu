@@ -35,14 +35,9 @@ export function QuestionPreviewCard({
           <BookmarkQuestionButton
             questionId={questionId}
             initialIsBookmarked={isBookmarked}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             size={20}
           />
-          <DeleteQuestionButton
-            questionId={questionId}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            size={20}
-          />
+          <DeleteQuestionButton questionId={questionId} size={20} />
         </CardAction>
       </CardHeader>
 

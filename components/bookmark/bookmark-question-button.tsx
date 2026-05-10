@@ -1,6 +1,7 @@
 'use client';
 
 import { clientFetch } from '@/lib/fetch/client';
+import { cn } from '@/lib/utils';
 import { Bookmark } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -62,7 +63,10 @@ export function BookmarkQuestionButton({
       disabled={isSaving}
       aria-pressed={isBookmarked}
       aria-label={isBookmarked ? '북마크 해제' : '북마크 추가'}
-      className={`cursor-pointer ${className ?? ''}`}
+      className={cn(
+        'cursor-pointer flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        className,
+      )}
     >
       <Bookmark
         className={`stroke-orange-400 stroke-2 ${
