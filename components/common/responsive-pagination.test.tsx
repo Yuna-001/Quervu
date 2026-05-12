@@ -43,7 +43,9 @@ describe('ResponsivePagination', () => {
     const full = screen.getByTestId('pagination-full');
 
     expect(compact).toBeInTheDocument();
+    expect(compact).toHaveClass('sm:hidden');
     expect(full).toBeInTheDocument();
+    expect(full).toHaveClass('hidden', 'sm:block');
   });
 });
 
@@ -135,7 +137,7 @@ describe('FullPagination', () => {
     const totalPages = 30;
     const page = 1;
 
-    render(
+    const { container } = render(
       <FullPagination
         page={page}
         totalPages={totalPages}
@@ -143,7 +145,7 @@ describe('FullPagination', () => {
       />,
     );
 
-    const ellipses = document.querySelectorAll(
+    const ellipses = container.querySelectorAll(
       '[data-slot="pagination-ellipsis"]',
     );
     expect(ellipses.length).toBeGreaterThanOrEqual(1);
@@ -170,7 +172,7 @@ describe('FullPagination', () => {
     const totalPages = 3;
     const page = 1;
 
-    render(
+    const { container } = render(
       <FullPagination
         page={page}
         totalPages={totalPages}
@@ -178,7 +180,7 @@ describe('FullPagination', () => {
       />,
     );
 
-    const ellipses = document.querySelectorAll(
+    const ellipses = container.querySelectorAll(
       '[data-slot="pagination-ellipsis"]',
     );
     expect(ellipses.length).toBe(0);
@@ -192,7 +194,7 @@ describe('FullPagination', () => {
     const totalPages = 30;
     const page = 15;
 
-    render(
+    const { container } = render(
       <FullPagination
         page={page}
         totalPages={totalPages}
@@ -200,7 +202,7 @@ describe('FullPagination', () => {
       />,
     );
 
-    const ellipses = document.querySelectorAll(
+    const ellipses = container.querySelectorAll(
       '[data-slot="pagination-ellipsis"]',
     );
     expect(ellipses.length).toBe(2);
