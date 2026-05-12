@@ -7,6 +7,11 @@ import {
 
 const makeHref = (p: number) => `/?page=${p}`;
 
+const paginationVariants = [
+  { name: 'CompactPagination', Component: CompactPagination },
+  { name: 'FullPagination', Component: FullPagination },
+] as const;
+
 describe('ResponsivePagination', () => {
   test('totalPages가 1 이하이면 null을 반환한다', () => {
     const totalPages = 1;
@@ -58,31 +63,25 @@ describe('CompactPagination', () => {
     const pagination = screen.getByText(`${page} / ${totalPages}`);
     expect(pagination).toBeInTheDocument();
   });
-  test('page=1이면 이전(Previous)이 pointer-events-none 래퍼로 감싸져 비활성이고 href는 makeHref(1)이다', () => {
+});
+
+describe.each(paginationVariants)('$name 이전/다음 링크', ({ Component }) => {
+  test('page=1이면 이전 링크가 비활성이고 href는 makeHref(1)이다', () => {
     const totalPages = 10;
 
-    render(
-      <CompactPagination
-        page={1}
-        totalPages={totalPages}
-        makeHref={makeHref}
-      />,
-    );
+    render(<Component page={1} totalPages={totalPages} makeHref={makeHref} />);
 
     const prevLink = screen.getByRole('link', { name: /이전 페이지/ });
 
-    // href는 makeHref(1)
     expect(prevLink).toHaveAttribute('href', makeHref(1));
-
-    // 비활성 처리: wrapper에 aria-disabled가 있어야 함
-    const wrapper = prevLink.closest('[aria-disabled="true"]');
-    expect(wrapper).not.toBeNull();
+    expect(prevLink.closest('[aria-disabled="true"]')).not.toBeNull();
   });
-  test('page=totalPages이면 이후(Next)가 pointer-events-none 래퍼로 감싸져 비활성이고 href는 makeHref(totalPages)이다', () => {
+
+  test('page=totalPages이면 다음 링크가 비활성이고 href는 makeHref(totalPages)이다', () => {
     const totalPages = 10;
 
     render(
-      <CompactPagination
+      <Component
         page={totalPages}
         totalPages={totalPages}
         makeHref={makeHref}
@@ -91,23 +90,16 @@ describe('CompactPagination', () => {
 
     const nextLink = screen.getByRole('link', { name: /다음 페이지/ });
 
-    // href는 makeHref(totalPages)
     expect(nextLink).toHaveAttribute('href', makeHref(totalPages));
-
-    // 비활성 처리: wrapper에 aria-disabled가 있어야 함
-    const wrapper = nextLink.closest('[aria-disabled="true"]');
-    expect(wrapper).not.toBeNull();
+    expect(nextLink.closest('[aria-disabled="true"]')).not.toBeNull();
   });
+
   test('page가 중간값이면 이전 링크, 다음 링크 href가 makeHref(page-1),makeHref(page+1)로 설정된다', () => {
     const totalPages = 10;
     const page = 5;
 
     render(
-      <CompactPagination
-        page={page}
-        totalPages={totalPages}
-        makeHref={makeHref}
-      />,
+      <Component page={page} totalPages={totalPages} makeHref={makeHref} />,
     );
 
     const prevLink = screen.getByRole('link', { name: /이전 페이지/ });
@@ -119,60 +111,6 @@ describe('CompactPagination', () => {
 });
 
 describe('FullPagination', () => {
-  test('page=1이면 이전(Previous)이 pointer-events-none 래퍼로 감싸져 비활성이고 href는 makeHref(1)이다', () => {
-    const totalPages = 10;
-
-    render(
-      <FullPagination page={1} totalPages={totalPages} makeHref={makeHref} />,
-    );
-
-    const prevLink = screen.getByRole('link', { name: /이전 페이지/ });
-
-    // href는 makeHref(1)
-    expect(prevLink).toHaveAttribute('href', makeHref(1));
-
-    // 비활성 처리: wrapper에 aria-disabled가 있어야 함
-    const wrapper = prevLink.closest('[aria-disabled="true"]');
-    expect(wrapper).not.toBeNull();
-  });
-  test('page=totalPages이면 이후(Next)가 pointer-events-none 래퍼로 감싸져 비활성이고 href는 makeHref(totalPages)이다', () => {
-    const totalPages = 10;
-
-    render(
-      <FullPagination
-        page={totalPages}
-        totalPages={totalPages}
-        makeHref={makeHref}
-      />,
-    );
-
-    const nextLink = screen.getByRole('link', { name: /다음 페이지/ });
-
-    // href는 makeHref(totalPages)
-    expect(nextLink).toHaveAttribute('href', makeHref(totalPages));
-
-    // 비활성 처리: wrapper에 aria-disabled가 있어야 함
-    const wrapper = nextLink.closest('[aria-disabled="true"]');
-    expect(wrapper).not.toBeNull();
-  });
-  test('page가 중간값이면 이전 링크, 다음 링크 href가 makeHref(page-1),makeHref(page+1)로 설정된다', () => {
-    const totalPages = 10;
-    const page = 5;
-
-    render(
-      <FullPagination
-        page={page}
-        totalPages={totalPages}
-        makeHref={makeHref}
-      />,
-    );
-
-    const prevLink = screen.getByRole('link', { name: /이전 페이지/ });
-    const nextLink = screen.getByRole('link', { name: /다음 페이지/ });
-
-    expect(prevLink).toHaveAttribute('href', makeHref(page - 1));
-    expect(nextLink).toHaveAttribute('href', makeHref(page + 1));
-  });
   test('getPaginationItems 결과의 number 항목은 PaginationLink로 렌더되며 href는 makeHref(item)이다', () => {
     const totalPages = 7;
     const page = 3;
