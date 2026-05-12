@@ -1,4 +1,4 @@
-type PaginationToken = number | 'ellipsis';
+export type PaginationToken = number | 'ellipsis';
 
 export const getPaginationItems = (
   page: number,
