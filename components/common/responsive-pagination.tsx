@@ -43,13 +43,13 @@ export function CompactPagination({
       <PaginationContent className="justify-center">
         <PaginationItem>
           {page > 1 ? (
-            <PaginationPrevious href={makeHref(prevPage)} />
+            <PaginationPrevious href={makeHref(prevPage)} text="이전" />
           ) : (
             <span
               aria-disabled="true"
               className="pointer-events-none opacity-50"
             >
-              <PaginationPrevious href={makeHref(1)} />
+              <PaginationPrevious href={makeHref(1)} text="이전" />
             </span>
           )}
         </PaginationItem>
@@ -62,13 +62,13 @@ export function CompactPagination({
 
         <PaginationItem>
           {page < totalPages ? (
-            <PaginationNext href={makeHref(nextPage)} />
+            <PaginationNext href={makeHref(nextPage)} text="다음" />
           ) : (
             <span
               aria-disabled="true"
               className="pointer-events-none opacity-50"
             >
-              <PaginationNext href={makeHref(totalPages)} />
+              <PaginationNext href={makeHref(totalPages)} text="다음" />
             </span>
           )}
         </PaginationItem>
@@ -89,13 +89,13 @@ export function FullPagination({
       <PaginationContent>
         <PaginationItem>
           {page > 1 ? (
-            <PaginationPrevious href={makeHref(page - 1)} />
+            <PaginationPrevious href={makeHref(page - 1)} text="이전" />
           ) : (
             <span
               aria-disabled="true"
               className="pointer-events-none opacity-50"
             >
-              <PaginationPrevious href={makeHref(1)} />
+              <PaginationPrevious href={makeHref(1)} text="이전" />
             </span>
           )}
         </PaginationItem>
@@ -116,13 +116,13 @@ export function FullPagination({
 
         <PaginationItem>
           {page < totalPages ? (
-            <PaginationNext href={makeHref(page + 1)} />
+            <PaginationNext href={makeHref(page + 1)} text="다음" />
           ) : (
             <span
               aria-disabled="true"
               className="pointer-events-none opacity-50"
             >
-              <PaginationNext href={makeHref(totalPages)} />
+              <PaginationNext href={makeHref(totalPages)} text="다음" />
             </span>
           )}
         </PaginationItem>
