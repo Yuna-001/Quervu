@@ -12,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { clientFetch } from '@/lib/fetch/client';
+import { cn } from '@/lib/utils';
 import { Trash } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -57,7 +58,10 @@ export function DeleteQuestionButton({
         <button
           type="button"
           aria-label="질문 삭제"
-          className={`cursor-pointer ${className ?? ''}`}
+          className={cn(
+            'cursor-pointer flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            className,
+          )}
         >
           <Trash className="stroke-2" size={size} />
         </button>
