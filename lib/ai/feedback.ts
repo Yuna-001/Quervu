@@ -69,20 +69,13 @@ const createFeedbackUserPrompt = (input: FeedbackInput): string => {
 };
 
 /** 문자열 배열을 trim/빈값 제거 후, 유효하지 않으면 null을 반환하는 함수 */
-const normalizeStringArray = (
-  value: unknown,
-  options: { allowEmpty?: boolean } = {},
-): string[] | null => {
+const normalizeStringArray = (value: unknown): string[] | null => {
   if (!Array.isArray(value)) return null;
 
   const normalized = value
     .filter((item): item is string => typeof item === 'string')
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
-
-  if (normalized.length === 0 && !options.allowEmpty) {
-    return null;
-  }
 
   return normalized;
 };
@@ -109,9 +102,7 @@ const parseFeedback = (raw: string): Feedback => {
   const normalizedSummary = typeof summary === 'string' ? summary.trim() : '';
   const normalizedStrengths = normalizeStringArray(strengths);
   const normalizedImprovements = normalizeStringArray(improvements);
-  const normalizedMissingKeywords = normalizeStringArray(missingKeywords, {
-    allowEmpty: true,
-  });
+  const normalizedMissingKeywords = normalizeStringArray(missingKeywords);
 
   const isValidScore =
     typeof score === 'number' &&
@@ -122,9 +113,9 @@ const parseFeedback = (raw: string): Feedback => {
   if (
     normalizedSummary.length === 0 ||
     !isValidScore ||
-    !normalizedStrengths ||
-    !normalizedImprovements ||
-    !normalizedMissingKeywords
+    normalizedStrengths === null ||
+    normalizedImprovements === null ||
+    normalizedMissingKeywords === null
   ) {
     console.error('Invalid generated feedback format', parsed);
     throw new Error('생성된 응답 형식이 올바르지 않습니다.');
