@@ -1,3 +1,4 @@
+import { MAX_ANSWER_LENGTH } from '@/lib/constants/answer';
 import { clientFetch } from '@/lib/fetch/client';
 import type { FetchErrorResult, FetchSuccessResult } from '@/lib/fetch/core';
 import { FAIL_500 } from '@/test/fixtures/fetch';
@@ -66,13 +67,17 @@ describe('AnswerForm', () => {
     expect(getSubmitButton()).toBeEnabled();
   });
 
-  test('답변이 500자를 초과하면 textarea가 invalid 상태가 되고 제출 버튼이 비활성화된다', async () => {
+  test(`답변이 ${MAX_ANSWER_LENGTH}자를 초과하면 textarea가 invalid 상태가 되고 제출 버튼이 비활성화된다`, async () => {
     renderAnswerForm();
 
-    fireEvent.change(getTextarea(), { target: { value: 'a'.repeat(501) } });
+    fireEvent.change(getTextarea(), {
+      target: { value: 'a'.repeat(MAX_ANSWER_LENGTH + 1) },
+    });
 
     expect(getTextarea()).toHaveAttribute('aria-invalid', 'true');
-    expect(screen.getByText('501')).toHaveClass('text-red-600');
+    expect(screen.getByText(String(MAX_ANSWER_LENGTH + 1))).toHaveClass(
+      'text-red-600',
+    );
     expect(getSubmitButton()).toBeDisabled();
   });
 

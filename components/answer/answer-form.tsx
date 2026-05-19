@@ -3,12 +3,11 @@
 import { LoadingButton } from '@/components/common/loading-button';
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
+import { MAX_ANSWER_LENGTH } from '@/lib/constants/answer';
 import { clientFetch } from '@/lib/fetch/client';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-
-const TEXT_LIMIT = 500;
 
 export function AnswerForm({ questionId }: { questionId: string }) {
   const [userAnswer, setUserAnswer] = useState<string>('');
@@ -18,7 +17,7 @@ export function AnswerForm({ questionId }: { questionId: string }) {
 
   const router = useRouter();
 
-  const isOverLimit = userAnswer.length > TEXT_LIMIT;
+  const isOverLimit = userAnswer.length > MAX_ANSWER_LENGTH;
   const isDisabled = userAnswer.length === 0 || isOverLimit;
 
   const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (
@@ -33,8 +32,8 @@ export function AnswerForm({ questionId }: { questionId: string }) {
       return;
     }
 
-    if (trimmedUserAnswer.length > TEXT_LIMIT) {
-      toast.error('답변은 500자 이내로 작성해주세요.');
+    if (trimmedUserAnswer.length > MAX_ANSWER_LENGTH) {
+      toast.error(`답변은 ${MAX_ANSWER_LENGTH}자 이내로 작성해주세요.`);
       return;
     }
 
@@ -95,14 +94,14 @@ export function AnswerForm({ questionId }: { questionId: string }) {
             <span className={isOverLimit ? 'text-red-600' : ''}>
               {userAnswer.length}
             </span>{' '}
-            / {TEXT_LIMIT}
+            / {MAX_ANSWER_LENGTH}
           </FieldDescription>
         </div>
         <Textarea
           id="user-answer"
           name="user-answer"
           dir="ltr"
-          placeholder="500자 이내로 답변을 작성해주세요."
+          placeholder={`${MAX_ANSWER_LENGTH}자 이내로 답변을 작성해주세요.`}
           className="resize-none sm:min-h-36"
           value={userAnswer}
           onChange={(e) => setUserAnswer(e.target.value)}

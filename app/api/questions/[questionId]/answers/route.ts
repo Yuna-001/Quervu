@@ -1,5 +1,6 @@
 import { generateFeedback } from '@/lib/ai/feedback';
 import { requireUserId } from '@/lib/auth/requireUserId';
+import { MAX_ANSWER_LENGTH } from '@/lib/constants/answer';
 import dbConnect from '@/lib/dbConnect';
 import { HttpError } from '@/lib/error';
 import AnswerModel from '@/models/answer';
@@ -84,9 +85,9 @@ export async function POST(req: Request, { params }: RouteParams) {
     );
   }
 
-  if (trimmedAnswer.length > 500) {
+  if (trimmedAnswer.length > MAX_ANSWER_LENGTH) {
     return NextResponse.json(
-      { error: `사용자 답변은 500자 이내여야 합니다.` },
+      { error: `사용자 답변은 ${MAX_ANSWER_LENGTH}자 이내여야 합니다.` },
       { status: 400 },
     );
   }
